@@ -1,0 +1,79 @@
+version: '3.8'
+
+x-common:
+  &common
+  build: .
+  environment:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    - POSTGRES_DB=postgres
+    - MLFLOW_TRACKING_URI=http://mlflow:5000
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/apache_db
+    - AIRFLOW__CORE__LOAD_EXAMPLES=False
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  mlflow:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+    command: mlflow server --backend-store-uri sqlite:////app/mlruns/mlflow.db --default-artifact-root /app/mlruns --host 0.0.0.0 --port 5000 --serve-artifacts
+
+  airflow-init:
+    <<: *common
+    command: airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin
+    volumes:
+      - ./dags:/root/airflow/dags
+      - ./scripts:/app/scripts
+      - ./mlruns:/app/mlruns
+
+  airflow-webserver:
+    <<: *common
+    command: airflow webserver -p 8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/root/airflow/dags
+      - ./scripts:/app/scripts
+      - ./mlruns:/app/mlruns
+    depends_on:
+      - airflow-init
+
+  airflow-scheduler:
+    <<: *common
+    command: airflow scheduler
+    volumes:
+      - ./dags:/root/airflow/dags
+      - ./scripts:/app/scripts
+      - ./mlruns:/app/mlruns
+    depends_on:
+      - airflow-init
+
+  api:
+    <<: *common
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./mlruns:/app/mlruns
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4

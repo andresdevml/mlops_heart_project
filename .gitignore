@@ -1,0 +1,16 @@
+# Entornos virtuales
+venv/
+venv_local/
+
+# Python
+__pycache__/
+*.pyc
+
+# MLOps - Datos y Artefactos (¡CRÍTICO NO SUBIR ESTO!)
+postgres_data/
+mlruns/
+*.keras
+
+# Airflow
+airflow_logs/
+airflow_plugins/
