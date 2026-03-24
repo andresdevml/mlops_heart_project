@@ -12,7 +12,7 @@ El ecosistema está compuesto por microservicios orquestados mediante **Docker C
 * **PostgreSQL**: Actúa como la *Single Source of Truth*. Almacena los datos de entrenamiento crudos y registra de forma persistente todos los *logs* de las predicciones de la API para auditoría y futuro reentrenamiento.
 * **MLflow**: Funciona como el *Model Registry* y sistema de *Tracking*. Guarda las distintas versiones de los modelos generados (`.keras`), sus métricas de rendimiento (accuracy, loss) y sus hiperparámetros.
 * **FastAPI**: Capa de servicio (*Serving Layer*). Proporciona un *endpoint* REST asíncrono y de baja latencia para la inferencia en tiempo real, con validación estricta de datos de entrada mediante Pydantic.
-* **Docker & Docker Hub**: Todo el sistema se despliega a partir de contenedores, utilizando una imagen maestra remota (`huachitech/mlops-heart-api:v1.0`) para máxima resiliencia.
+* **Docker & Docker Hub**: Todo el sistema se despliega a partir de contenedores, utilizando una imagen maestra remota (`huachitech/mlops-heart-api:v1.0`).
 
 ## 📂 Estructura del Proyecto
 
@@ -40,7 +40,7 @@ git clone [https://github.com/andresdevml/mlops_heart_project.git](https://githu
 cd mlops_heart_project
 docker compose up -d
 ```
-*Los contenedores descargarán la imagen pre-compilada desde Docker Hub y el sistema estará operativo en menos de 2 minutos.*
+*Los contenedores descargarán la imagen pre-compilada desde Docker Hub y el sistema estará operativo en pocos minutos.*
 
 ## 🧪 Pruebas de la API (Testing)
 
@@ -64,4 +64,4 @@ Mensaje obtenido: {'detail': 'data de ingreso no esta bien estructruada'}
 Completado en 2.57 segundos.
 Peticiones exitosas: 100/100
 ```
-*(El test de concurrencia completó 100 peticiones de inferencia simultáneas en solo 2.57 segundos, incluyendo la latencia de red).*
+*(El test de concurrencia completó 100 peticiones de inferencia simultáneas en 2.57 segundos, incluyendo la latencia de red).*
